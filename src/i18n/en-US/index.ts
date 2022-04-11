@@ -8,4 +8,5 @@ export default {
   homeserver: 'Homeserver',
   username: 'Username',
   password: 'Password',
+  login: 'Login',
 };

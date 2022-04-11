@@ -1,38 +1,6 @@
 <template>
   <base-page>
-    <q-input
-      square
-      outlined
-      v-model="homeserverUrl"
-      :label="t('homeserver')"
-      type="url"
-      :rules="[homeserverValidation]"
-    />
-    <q-input
-      square
-      filled
-      v-model="username"
-      :label="t('username')"
-      type="text"
-    />
-    <q-input
-      square
-      filled
-      class="q-mt-sm"
-      v-model="password"
-      :label="t('password')"
-      :type="showPassword ? 'text' : 'password'"
-      icon
-    >
-      <template v-slot:append>
-        <q-btn
-          round
-          flat
-          :icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-          @click="showPassword = !showPassword"
-        />
-      </template>
-    </q-input>
+    <matrix-login />
   </base-page>
 </template>
 
@@ -41,41 +9,16 @@ import { defineComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import BasePage from 'src/components/BasePage.vue';
 import { api as axios } from 'src/boot/axios';
-
-const LOGIN_TEMPLATE = 'https://%s/_matrix/client/r0/login';
+import MatrixLogin from 'src/components/MatrixLogin.vue';
 
 export default defineComponent({
   name: 'RegisterUserPage',
-  components: { BasePage },
+  components: { BasePage, MatrixLogin },
   setup() {
     const { t } = useI18n(); // Translator function: t
 
-    const homeserverUrl = ref('');
-    const username = ref('');
-    const password = ref('');
-    const showPassword = ref(false);
-
-    // FORM VALIDATION
-    async function homeserverValidation(input: string): Promise<boolean> {
-      let valid = false;
-      try {
-        // TODO: handle whether user types in only domain or whole url
-        const matrixGetLogin = await axios.get(
-          LOGIN_TEMPLATE.replace('%s', input)
-        );
-        valid = matrixGetLogin.status === 401;
-      } catch (ex) {}
-      // TODO: Handle CORS
-      return valid;
-    }
-
     return {
       t,
-      homeserverUrl,
-      username,
-      password,
-      showPassword,
-      homeserverValidation,
     };
   },
 });

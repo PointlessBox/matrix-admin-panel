@@ -12,6 +12,14 @@
         />
 
         <q-toolbar-title>Register Matrix User</q-toolbar-title>
+        <q-space />
+        <q-btn
+          round
+          flat
+          size="sm"
+          icon="mdi-logout"
+          @click="TODO('implement logout')"
+        />
       </q-toolbar>
     </q-header>
 
@@ -43,6 +51,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+import TODO from 'src/utils/todo';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -53,6 +62,7 @@ export default defineComponent({
     const leftDrawerOpen = ref(false);
 
     return {
+      TODO,
       leftDrawerOpen,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;

@@ -1,38 +1,44 @@
 <template>
   <div>
-    <q-input
-      square
-      outlined
-      v-model="homeserverUrl"
-      :label="t('homeserver')"
-      type="url"
-      :rules="[homeserverValidation]"
-    />
-    <q-input
-      square
-      filled
-      v-model="username"
-      :label="t('username')"
-      type="text"
-    />
-    <q-input
-      square
-      filled
-      class="q-mt-sm"
-      v-model="password"
-      :label="t('password')"
-      :type="showPassword ? 'text' : 'password'"
-      icon
-    >
-      <template v-slot:append>
-        <q-btn
-          round
-          flat
-          :icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-          @click="showPassword = !showPassword"
-        />
-      </template>
-    </q-input>
+    <q-form @submit="login">
+      <q-input
+        square
+        outlined
+        v-model="homeserverUrl"
+        :label="t('homeserver')"
+        type="url"
+        :rules="[homeserverValidation]"
+      />
+      <q-input
+        square
+        filled
+        v-model="username"
+        :label="t('username')"
+        type="text"
+      />
+      <q-input
+        square
+        filled
+        class="q-mt-sm"
+        v-model="password"
+        :label="t('password')"
+        :type="showPassword ? 'text' : 'password'"
+        icon
+      >
+        <template v-slot:append>
+          <q-btn
+            round
+            flat
+            :icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            @click="showPassword = !showPassword"
+          />
+        </template>
+      </q-input>
+      <div class="row q-mt-md">
+        <q-space />
+        <q-btn flat rounded :label="t('login')" type="submit" color="primary" />
+      </div>
+    </q-form>
   </div>
 </template>
 
@@ -44,7 +50,7 @@ import { api as axios } from 'src/boot/axios';
 const LOGIN_TEMPLATE = 'https://%s/_matrix/client/r0/login';
 
 export default defineComponent({
-  name: 'RegisterUserPage',
+  name: 'MatrixLogin',
   components: {},
   emits: ['success', 'failure'],
   setup(_props, ctx) {
@@ -86,6 +92,7 @@ export default defineComponent({
       password,
       showPassword,
       homeserverValidation,
+      login,
     };
   },
 });
