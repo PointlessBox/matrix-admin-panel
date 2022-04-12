@@ -14,10 +14,10 @@
         <q-toolbar-title>Register Matrix User</q-toolbar-title>
         <q-space />
         <q-btn
-          round
           flat
-          size="sm"
-          icon="mdi-logout"
+          round
+          size="md"
+          icon="mdi-power"
           @click="TODO('implement logout')"
         />
       </q-toolbar>

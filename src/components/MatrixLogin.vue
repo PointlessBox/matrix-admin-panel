@@ -4,6 +4,7 @@
       <q-input
         square
         outlined
+        class="q-mb-md"
         v-model="homeserverUrl"
         :label="t('homeserver')"
         type="url"
@@ -46,6 +47,7 @@
 import { defineComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { api as axios } from 'src/boot/axios';
+import TODO from 'src/utils/todo';
 
 const LOGIN_TEMPLATE = 'https://%s/_matrix/client/r0/login';
 
@@ -56,7 +58,8 @@ export default defineComponent({
   setup(_props, ctx) {
     const { t } = useI18n(); // Translator function: t
 
-    const homeserverUrl = ref('');
+    // TODO: Change homeserverUrl to a computed prop and return 'matrix.org' as default value if user input is empty
+    const homeserverUrl = ref('https://matrix.org'); // Defaults to matrix.org
     const username = ref('');
     const password = ref('');
     const showPassword = ref(false);
@@ -77,6 +80,7 @@ export default defineComponent({
 
     async function login() {
       const success = false;
+      TODO('Implement login');
       // TODO: Call matrix login api and emit access_token
       // TODO: Set a timeout value for access_token if possible
       // login api: https://spec.matrix.org/v1.2/client-server-api/#login
