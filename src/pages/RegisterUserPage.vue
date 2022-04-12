@@ -9,14 +9,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 import BasePage from 'src/components/BasePage.vue';
 // import { setAuthFor } from 'src/boot/axios';
-import MatrixLogin from 'src/components/matrix-login/MatrixLogin.vue';
+import MatrixLogin from 'src/components/MatrixLogin.vue';
 import { useHomeserverStore } from 'src/stores/homeserver-store';
-import { SuccessEmit } from 'src/components/matrix-login/matrix-login';
 import Services from 'src/network/services';
+import { CurrentLogin } from 'src/network/matrix-service';
+
+type SuccessEmit = CurrentLogin;
 
 export default defineComponent({
   name: 'RegisterUserPage',

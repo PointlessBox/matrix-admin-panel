@@ -13,14 +13,13 @@
 
         <q-toolbar-title>Register Matrix User</q-toolbar-title>
         <q-space />
-        <q-btn
-          v-if="homeserverStore.isLoggedIn"
-          flat
-          round
-          size="md"
-          icon="mdi-power"
-          @click="logout"
-        />
+        <span v-if="homeserverStore.isLoggedIn">
+          <matrix-user-display
+            :username="homeserverStore.user"
+            :domain="homeserverStore.domain"
+          />
+          <q-btn flat round size="md" icon="mdi-power" @click="logout" />
+        </span>
       </q-toolbar>
     </q-header>
 
@@ -58,11 +57,12 @@ import TODO from 'src/utils/todo';
 import Services from 'src/network/services';
 import Do from 'src/utils/do';
 import { useHomeserverStore } from 'src/stores/homeserver-store';
+import MatrixUserDisplay from 'src/components/MatrixUserDisplay.vue';
 
 export default defineComponent({
   name: 'MainLayout',
 
-  components: {},
+  components: { MatrixUserDisplay },
   setup() {
     const leftDrawerOpen = ref(false);
     const $q = useQuasar();

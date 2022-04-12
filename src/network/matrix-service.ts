@@ -15,15 +15,56 @@ class MatrixLogin {
   constructor(private user: string, private password: string) {}
 }
 
-export interface CurrentLogin {
-  username: string;
-  accessToken: string;
+export interface LoginSuccessResponse {
+  /**
+   * Access Token used for authentication.
+   * Authorization Header: Bearer <token>
+   */
+  access_token: string;
+  /**
+   * Identifier of devices used for login
+   * e.g. 'GHTYAJCE'
+   */
+  device_id: string;
+  /**
+   * @<username>:<homeserver>
+   * e.g. '@cheeky_monkey:matrix.org'
+   */
+  user_id: string;
 }
 
-export interface LoginSuccess {
-  url: string;
-  currentLogin: CurrentLogin;
+export interface CurrentLogin {
+  /**
+   * Access Token used for authentication.
+   * Authorization Header: Bearer <token>
+   */
+  accessToken: string;
+  /**
+   * Identifier of devices used for login
+   * e.g. 'GHTYAJCE'
+   */
+  deviceId: string;
+  /**
+   * @<username>:<homeserver>
+   * e.g. '@cheeky_monkey:matrix.org'
+   */
+  userId: string;
 }
+
+const parseLoginSuccessResponse = (
+  value: LoginSuccessResponse
+): CurrentLogin => {
+  return {
+    accessToken: value.access_token,
+    deviceId: value.device_id,
+    userId: value.user_id,
+  };
+};
+
+// export interface LoginSuccess {
+//   url: string;
+//   currentLogin: CurrentLogin;
+// }
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const HTTP_CODES = {
@@ -77,7 +118,7 @@ export default class MatrixService {
     return statusCode;
   }
 
-  async login(username: string, password: string): Promise<LoginSuccess> {
+  async login(username: string, password: string): Promise<CurrentLogin> {
     this.throwIfNoHomeserver();
     const matrixLogin = new MatrixLogin(username, password);
     const loginResponse = await this.axios?.post(
@@ -86,23 +127,17 @@ export default class MatrixService {
     );
 
     if (loginResponse?.status === HTTP_CODES.success) {
-      const accessToken = loginResponse.data[ACCESS_TOKEN_KEY];
+      const loginData: LoginSuccessResponse = loginResponse.data;
       this.axios = axios.create({
         baseURL: this.homeserverUrl,
         headers: {
-          authorization: `Bearer ${accessToken}`,
+          authorization: `Bearer ${loginData.access_token}`,
         },
       });
-      this.currentLogin = {
-        username,
-        accessToken,
-      };
+      this.currentLogin = parseLoginSuccessResponse(loginData);
     } else throw new Error('Login failed');
 
-    return {
-      url: this.homeserverUrl,
-      currentLogin: this.currentLogin,
-    };
+    return this.currentLogin;
   }
 
   async logout(): Promise<undefined> {
