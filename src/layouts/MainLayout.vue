@@ -47,6 +47,8 @@
 import { defineComponent, ref } from 'vue';
 import { api, removeAuth } from 'src/boot/axios';
 // import axios from 'axios';
+import { useI18n } from 'vue-i18n';
+import { useQuasar } from 'quasar';
 import TODO from 'src/utils/todo';
 
 const LOGOUT_ENDPOINT = '/_matrix/client/v3/logout';
@@ -57,6 +59,8 @@ export default defineComponent({
   components: {},
   setup() {
     const leftDrawerOpen = ref(false);
+    const $q = useQuasar();
+    const { t } = useI18n();
 
     function logout() {
       // axios
@@ -70,11 +74,17 @@ export default defineComponent({
       api
         .post(LOGOUT_ENDPOINT)
         .then(() => {
-          // TODO: show snackbar with success
+          $q.notify({
+            type: 'negative',
+            message: t('logout.successful'),
+          });
           removeAuth();
         })
         .catch((err) => {
-          // TODO: show snackbar with fail
+          $q.notify({
+            type: 'negative',
+            message: t('logout.failed'),
+          });
           console.error(err);
         });
     }

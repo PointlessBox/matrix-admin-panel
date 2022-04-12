@@ -8,5 +8,14 @@ export default {
   homeserver: 'Homeserver',
   username: 'Username',
   password: 'Password',
-  login: 'Login',
+  login: {
+    self: 'Login',
+    successful: 'Login was successful',
+    failed: 'Login failed',
+  },
+  logout: {
+    self: 'Logout',
+    successful: 'Logout was successful',
+    failed: 'Logout failed',
+  },
 };

@@ -36,7 +36,13 @@
       </q-input>
       <div class="row q-mt-md">
         <q-space />
-        <q-btn flat rounded :label="t('login')" type="submit" color="primary" />
+        <q-btn
+          flat
+          rounded
+          :label="t('login.self')"
+          type="submit"
+          color="primary"
+        />
       </div>
     </q-form>
   </div>
@@ -47,6 +53,7 @@ import { defineComponent, ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { api as axios } from 'src/boot/axios';
 import MatrixLogin from './matrix-login';
+import { useQuasar } from 'quasar';
 
 const LOGIN_TEMPLATE = 'https://%s/_matrix/client/r0/login';
 const MATRIX_ORG = 'matrix.org';
@@ -75,6 +82,7 @@ export default defineComponent({
   components: {},
   emits: [EMIT.SUCCESS, EMIT.FAILURE],
   setup(_props, ctx) {
+    const $q = useQuasar();
     const { t } = useI18n(); // Translator function: t
 
     const homeserverDomain = ref(MATRIX_ORG); // Defaults to matrix.org
@@ -104,14 +112,20 @@ export default defineComponent({
         )
         .then((res) => {
           const access_token = res.data[ACCESS_TOKEN_KEY];
-          // TODO: show snackbar with success
+          $q.notify({
+            type: 'positive',
+            message: t('login.successful'),
+          });
           ctx.emit(EMIT.SUCCESS, {
             baseUrl: baseUrl(homeserverDomain.value),
             accessToken: access_token,
           });
         })
         .catch(() => {
-          // TODO: show snackbar with fail
+          $q.notify({
+            type: 'negative',
+            message: t('login.failed'),
+          });
           ctx.emit(EMIT.FAILURE);
         });
     }
