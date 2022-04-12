@@ -13,7 +13,14 @@
 
         <q-toolbar-title>Register Matrix User</q-toolbar-title>
         <q-space />
-        <q-btn flat round size="md" icon="mdi-power" @click="logout" />
+        <q-btn
+          v-if="homeserverStore.isLoggedIn"
+          flat
+          round
+          size="md"
+          icon="mdi-power"
+          @click="logout"
+        />
       </q-toolbar>
     </q-header>
 
@@ -45,13 +52,12 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import { api, removeAuth } from 'src/boot/axios';
-// import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { useQuasar } from 'quasar';
 import TODO from 'src/utils/todo';
-
-const LOGOUT_ENDPOINT = '/_matrix/client/v3/logout';
+import Services from 'src/network/services';
+import Do from 'src/utils/do';
+import { useHomeserverStore } from 'src/stores/homeserver-store';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -61,31 +67,24 @@ export default defineComponent({
     const leftDrawerOpen = ref(false);
     const $q = useQuasar();
     const { t } = useI18n();
+    const homeserverStore = useHomeserverStore();
 
     function logout() {
-      // axios
-      //   .create({
-      //     baseURL: 'https://mx.smallcoffee.de',
-      //     headers: {
-      //       authorization:
-      //         'Bearer syt_cml0emVua29ib2xk_TqgqwnTTMrEJHsNPNZUE_0l5oW8',
-      //     },
-      //   })
-      api
-        .post(LOGOUT_ENDPOINT)
+      Services.matrixService
+        .logout()
         .then(() => {
           $q.notify({
-            type: 'negative',
+            type: 'positive',
             message: t('logout.successful'),
           });
-          removeAuth();
+          homeserverStore.onLogout();
         })
         .catch((err) => {
           $q.notify({
             type: 'negative',
             message: t('logout.failed'),
           });
-          console.error(err);
+          Do.ifNotProd(() => console.error(err));
         });
     }
 
@@ -93,6 +92,7 @@ export default defineComponent({
       TODO,
       logout,
       leftDrawerOpen,
+      homeserverStore,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },

@@ -1,5 +1,7 @@
-export default class MLogin {
-  private type = 'm.login.password';
-
-  constructor(private user: string, private password: string) {}
+export interface SuccessEmit {
+  url: string;
+  currentLogin: {
+    username: string;
+    accessToken: string;
+  };
 }

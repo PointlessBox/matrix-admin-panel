@@ -5,14 +5,14 @@
         square
         outlined
         class="q-mb-md"
-        v-model="homeserverDomain"
+        v-model.trim="homeserverDomain"
         :label="t('homeserver')"
         :rules="[homeserverValidation]"
       />
       <q-input
         square
         filled
-        v-model="username"
+        v-model.trim="username"
         :label="t('username')"
         type="text"
       />
@@ -20,7 +20,7 @@
         square
         filled
         class="q-mt-sm"
-        v-model="password"
+        v-model.trim="password"
         :label="t('password')"
         :type="showPassword ? 'text' : 'password'"
         icon
@@ -49,41 +49,45 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { api as axios } from 'src/boot/axios';
-import MatrixLogin from './matrix-login';
+// import { api as axios } from 'src/boot/axios';
+// import MatrixLogin, { SuccessEmit } from './matrix-login';
 import { useQuasar } from 'quasar';
+import MatrixService from 'src/network/matrix-service';
 
-const LOGIN_TEMPLATE = 'https://%s/_matrix/client/r0/login';
+// const LOGIN_TEMPLATE = 'https://%s/_matrix/client/r0/login';
 const MATRIX_ORG = 'matrix.org';
 
-const loginUrl = (domain: string): string => {
-  return LOGIN_TEMPLATE.replace('%s', removeWhiteSpaces(domain));
-};
+// const loginUrl = (domain: string): string => {
+//   return LOGIN_TEMPLATE.replace('%s', removeWhiteSpaces(domain));
+// };
 
-const baseUrl = (domain: string): string => {
-  return `https://${removeWhiteSpaces(domain)}`;
-};
+// const baseUrl = (domain: string): string => {
+//   return `https://${removeWhiteSpaces(domain)}`;
+// };
 
-const removeWhiteSpaces = (value: string): string => {
-  return value.trim();
-};
+// const removeWhiteSpaces = (value: string): string => {
+//   return value.trim();
+// };
 
 const EMIT = {
   SUCCESS: 'success',
   FAILURE: 'failure',
 };
 
-const ACCESS_TOKEN_KEY = 'access_token';
+// const ACCESS_TOKEN_KEY = 'access_token';
 
 export default defineComponent({
   name: 'MatrixLogin',
   components: {},
   emits: [EMIT.SUCCESS, EMIT.FAILURE],
-  setup(_props, ctx) {
+  props: {
+    service: MatrixService,
+  },
+  setup(props, ctx) {
     const $q = useQuasar();
-    const { t } = useI18n(); // Translator function: t
+    const { t } = useI18n(); // Translator function
 
     const homeserverDomain = ref(MATRIX_ORG); // Defaults to matrix.org
     const username = ref('');
@@ -93,10 +97,12 @@ export default defineComponent({
     // FORM VALIDATION
     async function homeserverValidation(input: string): Promise<boolean> {
       let valid = false;
+      props.service?.homeserver(input);
       try {
         // TODO: handle whether user types in only domain or whole url
-        const matrixGetLogin = await axios.get(loginUrl(input));
-        valid = matrixGetLogin.status === 200 || matrixGetLogin.status === 401;
+        // const matrixGetLogin = await axios.get(loginUrl(input));
+        const statusCode = await props.service?.connect();
+        valid = statusCode === 200;
       } catch (ex) {}
       return valid;
     }
@@ -105,21 +111,14 @@ export default defineComponent({
       // TODO: Set a timeout value for access_token if possible
       // login api: https://spec.matrix.org/v1.2/client-server-api/#login
       // password-based login: https://spec.matrix.org/v1.2/client-server-api/#password-based
-      axios
-        .post(
-          loginUrl(homeserverDomain.value),
-          new MatrixLogin(username.value, password.value)
-        )
-        .then((res) => {
-          const access_token = res.data[ACCESS_TOKEN_KEY];
+      props.service
+        ?.login(username.value, password.value)
+        .then((loginSuccess) => {
           $q.notify({
             type: 'positive',
             message: t('login.successful'),
           });
-          ctx.emit(EMIT.SUCCESS, {
-            baseUrl: baseUrl(homeserverDomain.value),
-            accessToken: access_token,
-          });
+          ctx.emit(EMIT.SUCCESS, loginSuccess);
         })
         .catch(() => {
           $q.notify({
