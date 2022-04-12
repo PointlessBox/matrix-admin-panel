@@ -13,13 +13,7 @@
 
         <q-toolbar-title>Register Matrix User</q-toolbar-title>
         <q-space />
-        <q-btn
-          flat
-          round
-          size="md"
-          icon="mdi-power"
-          @click="TODO('implement logout')"
-        />
+        <q-btn flat round size="md" icon="mdi-power" @click="logout" />
       </q-toolbar>
     </q-header>
 
@@ -51,18 +45,43 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+import { api, removeAuth } from 'src/boot/axios';
+// import axios from 'axios';
 import TODO from 'src/utils/todo';
+
+const LOGOUT_ENDPOINT = '/_matrix/client/v3/logout';
 
 export default defineComponent({
   name: 'MainLayout',
 
   components: {},
-
   setup() {
     const leftDrawerOpen = ref(false);
 
+    function logout() {
+      // axios
+      //   .create({
+      //     baseURL: 'https://mx.smallcoffee.de',
+      //     headers: {
+      //       authorization:
+      //         'Bearer syt_cml0emVua29ib2xk_TqgqwnTTMrEJHsNPNZUE_0l5oW8',
+      //     },
+      //   })
+      api
+        .post(LOGOUT_ENDPOINT)
+        .then(() => {
+          // TODO: show snackbar with success
+          removeAuth();
+        })
+        .catch((err) => {
+          // TODO: show snackbar with fail
+          console.error(err);
+        });
+    }
+
     return {
       TODO,
+      logout,
       leftDrawerOpen,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;

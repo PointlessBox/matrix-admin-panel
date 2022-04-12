@@ -5,9 +5,8 @@
         square
         outlined
         class="q-mb-md"
-        v-model="homeserverUrl"
+        v-model="homeserverDomain"
         :label="t('homeserver')"
-        type="url"
         :rules="[homeserverValidation]"
       />
       <q-input
@@ -44,22 +43,41 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { api as axios } from 'src/boot/axios';
-import TODO from 'src/utils/todo';
+import MatrixLogin from './matrix-login';
 
 const LOGIN_TEMPLATE = 'https://%s/_matrix/client/r0/login';
+const MATRIX_ORG = 'matrix.org';
+
+const loginUrl = (domain: string): string => {
+  return LOGIN_TEMPLATE.replace('%s', removeWhiteSpaces(domain));
+};
+
+const baseUrl = (domain: string): string => {
+  return `https://${removeWhiteSpaces(domain)}`;
+};
+
+const removeWhiteSpaces = (value: string): string => {
+  return value.trim();
+};
+
+const EMIT = {
+  SUCCESS: 'success',
+  FAILURE: 'failure',
+};
+
+const ACCESS_TOKEN_KEY = 'access_token';
 
 export default defineComponent({
   name: 'MatrixLogin',
   components: {},
-  emits: ['success', 'failure'],
+  emits: [EMIT.SUCCESS, EMIT.FAILURE],
   setup(_props, ctx) {
     const { t } = useI18n(); // Translator function: t
 
-    // TODO: Change homeserverUrl to a computed prop and return 'matrix.org' as default value if user input is empty
-    const homeserverUrl = ref('https://matrix.org'); // Defaults to matrix.org
+    const homeserverDomain = ref(MATRIX_ORG); // Defaults to matrix.org
     const username = ref('');
     const password = ref('');
     const showPassword = ref(false);
@@ -69,29 +87,38 @@ export default defineComponent({
       let valid = false;
       try {
         // TODO: handle whether user types in only domain or whole url
-        const matrixGetLogin = await axios.get(
-          LOGIN_TEMPLATE.replace('%s', input)
-        );
-        valid = matrixGetLogin.status === 401;
+        const matrixGetLogin = await axios.get(loginUrl(input));
+        valid = matrixGetLogin.status === 200 || matrixGetLogin.status === 401;
       } catch (ex) {}
-      // TODO: Handle CORS
       return valid;
     }
 
-    async function login() {
-      const success = false;
-      TODO('Implement login');
-      // TODO: Call matrix login api and emit access_token
+    function login() {
       // TODO: Set a timeout value for access_token if possible
       // login api: https://spec.matrix.org/v1.2/client-server-api/#login
       // password-based login: https://spec.matrix.org/v1.2/client-server-api/#password-based
-      if (success) ctx.emit('success', 'ACCESS_TOKEN');
-      else ctx.emit('failure');
+      axios
+        .post(
+          loginUrl(homeserverDomain.value),
+          new MatrixLogin(username.value, password.value)
+        )
+        .then((res) => {
+          const access_token = res.data[ACCESS_TOKEN_KEY];
+          // TODO: show snackbar with success
+          ctx.emit(EMIT.SUCCESS, {
+            baseUrl: baseUrl(homeserverDomain.value),
+            accessToken: access_token,
+          });
+        })
+        .catch(() => {
+          // TODO: show snackbar with fail
+          ctx.emit(EMIT.FAILURE);
+        });
     }
 
     return {
       t,
-      homeserverUrl,
+      homeserverDomain,
       username,
       password,
       showPassword,
