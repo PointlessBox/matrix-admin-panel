@@ -1,8 +1,7 @@
 <template>
   <span>
-    <!-- TODO: Show only username if display is mobile size -->
     <b>{{ username }}</b
-    >:<span style="font-size: 0.75rem">{{ domain }}</span>
+    ><span v-if="!isMobile" style="font-size: 0.75rem">:{{ domain }}</span>
   </span>
 </template>
 
@@ -20,6 +19,11 @@ export default defineComponent({
     domain: {
       type: String,
       required: true,
+    },
+
+    isMobile: {
+      type: Boolean,
+      default: true,
     },
   },
 });

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { clone } from 'src/utils/clone';
 
 class NoHomeServerError extends Error {
   constructor(
@@ -94,6 +95,23 @@ export default class MatrixService {
     if (this.axios === null) throw new NoHomeServerError();
   }
 
+  loadConnection(currentLogin: CurrentLogin) {
+    this.currentLogin = clone(currentLogin);
+    const domain = this.currentLogin.userId.split(':')[1];
+    this.homeserver(domain);
+    this.currentLogin = this.currentLogin;
+    this.setBearerToken(this.currentLogin.accessToken);
+  }
+
+  private setBearerToken(token: string) {
+    this.axios = axios.create({
+      baseURL: this.homeserverUrl,
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
   homeserver(homeserverUrl: string): MatrixService {
     this.homeserverUrl = `https://${homeserverUrl.trim()}`;
     this.axios = axios.create({ baseURL: this.homeserverUrl });
@@ -128,12 +146,7 @@ export default class MatrixService {
 
     if (loginResponse?.status === HTTP_CODES.success) {
       const loginData: LoginSuccessResponse = loginResponse.data;
-      this.axios = axios.create({
-        baseURL: this.homeserverUrl,
-        headers: {
-          authorization: `Bearer ${loginData.access_token}`,
-        },
-      });
+      this.setBearerToken(loginData.access_token);
       this.currentLogin = parseLoginSuccessResponse(loginData);
     } else throw new Error('Login failed');
 

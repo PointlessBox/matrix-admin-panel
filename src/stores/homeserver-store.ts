@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import { CurrentLogin } from 'src/network/matrix-service';
+import { LocalStorage } from 'quasar';
+import Services from 'src/network/services';
 
 interface HomeserverState {
   currentLogin: CurrentLogin;
@@ -20,22 +22,37 @@ const extractDomain = (matrixUserId: string) => {
 };
 
 const produceEmptyState = (): HomeserverState => {
-  const loadedLoginRaw = localStorage.getItem(CURRENT_LOGIN);
-  if (loadedLoginRaw && loadedLoginRaw?.length > 0) {
-    return { currentLogin: JSON.parse(loadedLoginRaw) };
-  } else {
-    return {
-      currentLogin: {
+  return {
+    currentLogin: {
+      deviceId: '',
+      userId: '',
+      accessToken: '',
+    },
+  };
+};
+
+const loadCurrentLogin = (): CurrentLogin => {
+  const currentLogin = LocalStorage.getItem<CurrentLogin>(CURRENT_LOGIN);
+  if (currentLogin) {
+    Services.matrixService.loadConnection(currentLogin);
+  }
+  return currentLogin
+    ? currentLogin
+    : {
         deviceId: '',
         userId: '',
         accessToken: '',
-      },
-    };
-  }
+      };
+};
+
+const loadState = (): HomeserverState => {
+  const state = produceEmptyState();
+  state.currentLogin = loadCurrentLogin();
+  return state;
 };
 
 export const useHomeserverStore = defineStore('homeserver', {
-  state: () => ({ ...produceEmptyState() }),
+  state: () => ({ ...loadState() }),
   getters: {
     isLoggedIn: (state): boolean => state.currentLogin.accessToken.length > 0,
     user: (state): string => extractUser(state.currentLogin.userId),
@@ -44,15 +61,14 @@ export const useHomeserverStore = defineStore('homeserver', {
   actions: {
     onLogin(loginData: CurrentLogin) {
       const newState = { currentLogin: loginData };
-      localStorage.setItem(CURRENT_LOGIN, JSON.stringify(newState));
+      // Set ONLY current login in local storage
+      LocalStorage.set(CURRENT_LOGIN, loginData);
+      // Patch WHOLE state
       this.$patch(newState);
     },
     onLogout() {
-      localStorage.removeItem(CURRENT_LOGIN);
+      LocalStorage.remove(CURRENT_LOGIN);
       this.$patch(produceEmptyState());
     },
-    // increment() {
-    //   // this.counter++;
-    // },
   },
 });

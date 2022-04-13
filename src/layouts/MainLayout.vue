@@ -17,6 +17,7 @@
           <matrix-user-display
             :username="homeserverStore.user"
             :domain="homeserverStore.domain"
+            :is-mobile="q.screen.lt.sm"
           />
           <q-btn flat round size="md" icon="mdi-power" @click="logout" />
         </span>
@@ -65,7 +66,7 @@ export default defineComponent({
   components: { MatrixUserDisplay },
   setup() {
     const leftDrawerOpen = ref(false);
-    const $q = useQuasar();
+    const q = useQuasar();
     const { t } = useI18n();
     const homeserverStore = useHomeserverStore();
 
@@ -73,14 +74,14 @@ export default defineComponent({
       Services.matrixService
         .logout()
         .then(() => {
-          $q.notify({
+          q.notify({
             type: 'positive',
             message: t('logout.successful'),
           });
           homeserverStore.onLogout();
         })
         .catch((err) => {
-          $q.notify({
+          q.notify({
             type: 'negative',
             message: t('logout.failed'),
           });
@@ -91,6 +92,7 @@ export default defineComponent({
     return {
       TODO,
       logout,
+      q,
       leftDrawerOpen,
       homeserverStore,
       toggleLeftDrawer() {
