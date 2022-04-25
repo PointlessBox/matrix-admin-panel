@@ -81,10 +81,13 @@ export default class MatrixService {
   private axios!: AxiosInstance | null;
   private currentLogin: CurrentLogin | null = null;
 
+  static CLIENT = '/_matrix/client';
+  static CLIENT_VERSION = '/v1';
+  static CLIENT_PREFIX = `${this.CLIENT}${this.CLIENT_VERSION}`;
   static ENDPOINTS = {
-    versions: '/_matrix/client/versions',
-    login: '/_matrix/client/r0/login',
-    logout: '/_matrix/client/v3/logout',
+    versions: `${this.CLIENT}/versions`,
+    login: `${this.CLIENT_PREFIX}/login`,
+    logout: `${this.CLIENT_PREFIX}/logout`,
   };
 
   constructor(/* private homeserverUrl: string */) {
